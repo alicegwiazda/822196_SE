@@ -10,18 +10,17 @@ from PIL import Image
 from torchvision import transforms
 from transformers import CLIPProcessor, CLIPModel
 
-# Load CLIP model for embeddings
 device = "cuda" if torch.cuda.is_available() else "cpu"
 clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
 clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-# Paths (adjust as needed)
 INDEX_PATH = "models/faiss.index"
 META_PATH = "models/metadata.parquet"
 LOG_PATH = "app/logs/telemetry.csv"
+
+# TODO - Add final files modules
 SAMPLE_IMAGES_DIR = "data/sample_images/"
 
-# Load FAISS index + metadata
 if os.path.exists(INDEX_PATH) and os.path.exists(META_PATH):
     index = faiss.read_index(INDEX_PATH)
     metadata = pd.read_parquet(META_PATH)
@@ -29,7 +28,6 @@ else:
     index = None
     metadata = pd.DataFrame(columns=["artist", "title", "period", "image_path"])
 
-# Ensure log directory
 os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
 if not os.path.exists(LOG_PATH):
     with open(LOG_PATH, "w", newline="") as f:
