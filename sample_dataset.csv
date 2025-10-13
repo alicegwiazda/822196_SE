@@ -1,0 +1,4 @@
+artist,title,period,image_path
+Van Gogh,Starry Night,Post-Impressionism,data/sample_images/art_1.png
+Picasso,Les Demoiselles d'Avignon,Cubism,data/sample_images/art_2.png
+Monet,Water Lilies,Impressionism,data/sample_images/art_3.png

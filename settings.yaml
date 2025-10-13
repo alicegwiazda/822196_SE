@@ -1,0 +1,14 @@
+data:
+  processed_csv: data/processed/dataset.csv
+  images_dir: data/processed/images
+index:
+  faiss_path: models/faiss.index
+  meta_path: models/metadata.parquet
+model:
+  embedder: "sentence-transformers/clip-ViT-B-32"
+  device: "cuda"  
+retrieval:
+  top_k: 5
+generation:
+  provider: "gemini"
+  temperature: 0.2

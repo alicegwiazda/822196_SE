@@ -1,0 +1,26 @@
+# Core data processing
+pandas
+numpy
+
+# Machine Learning / Deep Learning
+torch
+transformers
+sentence-transformers
+
+# Similarity search
+faiss-cpu
+
+# App / UI
+gradio
+streamlit
+
+# LLM orchestration
+langchain
+langchain-google-genai
+
+# Image handling
+Pillow
+
+# Utils
+tqdm
+python-dotenv
