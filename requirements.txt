@@ -6,6 +6,7 @@ numpy
 torch
 transformers
 sentence-transformers
+scikit-learn
 
 # Similarity search
 faiss-cpu
@@ -20,6 +21,7 @@ langchain-google-genai
 
 # Image handling
 Pillow
+opencv-python
 
 # Utils
 tqdm
