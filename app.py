@@ -9,6 +9,7 @@ import faiss
 import numpy as np
 import pandas as pd
 from PIL import Image
+from gtts import gTTS
 
 import torch
 torch.set_num_threads(1) 
@@ -244,6 +245,40 @@ a key moment in the evolution of art. For more detailed information about this
 specific work, please consult museum resources or art historical databases."""
 
 
+def generate_audio(text, output_path="app/logs/narration.mp3"):
+    """
+    Generate audio narration from text using Google Text-to-Speech.
+    
+    Args:
+        text (str): The description text to convert to speech
+        output_path (str): Path where audio file will be saved
+        
+    Returns:
+        str: Path to generated audio file, or None if generation fails
+        
+    Example:
+        >>> audio_path = generate_audio("This is Starry Night by Van Gogh...")
+        >>> print(audio_path)
+        app/logs/narration.mp3
+    """
+    if not text or not isinstance(text, str):
+        print("Warning: Invalid text for audio generation")
+        return None
+    
+    try:
+        # Ensure output directory exists
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        # Generate audio using gTTS
+        tts = gTTS(text=text, lang='en', slow=False)
+        tts.save(output_path)
+        
+        return output_path
+    except Exception as e:
+        print(f"Error generating audio: {e}")
+        return None
+
+
 # ============================================================================
 # Main Recognition Pipeline
 # ============================================================================
@@ -319,11 +354,16 @@ def recognize(img, show_context):
         print(f"Error loading database image: {e}")
         database_img = img  # Fallback to uploaded image on error
 
+    # Generate audio narration
     if show_context:
         neighbors = results[["artist", "title", "period", "distance"]].to_dict(orient="records")
-        return f"Recognized: {artist}", database_img, description + "\nContext: " + str(neighbors)
+        full_description = description + "\nContext: " + str(neighbors)
     else:
-        return f"Recognized: {artist}", database_img, description
+        full_description = description
+    
+    audio_path = generate_audio(full_description)
+    
+    return f"Recognized: {artist}", database_img, full_description, audio_path
 
 
 sample_images = []
@@ -356,6 +396,7 @@ with gr.Blocks() as demo:
             label_output = gr.Textbox(label="Recognition Result")
             desc_output = gr.Textbox(label="Description", lines=12, max_lines=20)
             img_output = gr.Image(label="Preview")
+            audio_output = gr.Audio(label="Audio Narration", autoplay=True)
 
     def run_pipeline(uploaded, sample_path, show_context):
         """Process image from upload or sample selection with validation."""
@@ -363,25 +404,25 @@ with gr.Blocks() as demo:
             # Validate and load image
             if uploaded is None and sample_path:
                 if not os.path.exists(sample_path):
-                    return "Error: Sample image not found", None, f"Sample image path is invalid: {sample_path}"
+                    return "Error: Sample image not found", None, f"Sample image path is invalid: {sample_path}", None
                 try:
                     uploaded = Image.open(sample_path)
                 except Exception as e:
-                    return "Error: Failed to load sample", None, f"Could not open sample image: {str(e)}"
+                    return "Error: Failed to load sample", None, f"Could not open sample image: {str(e)}", None
             
             if uploaded is None:
-                return "No image provided", None, "Please upload an image or select a sample artwork."
+                return "No image provided", None, "Please upload an image or select a sample artwork.", None
             
             # Validate image is a PIL Image
             if not isinstance(uploaded, Image.Image):
-                return "Error: Invalid image format", None, "Please provide a valid image file."
+                return "Error: Invalid image format", None, "Please provide a valid image file.", None
             
             # Run recognition
             return recognize(uploaded, show_context)
         except Exception as e:
-            return "Error during processing", None, f"An unexpected error occurred: {str(e)}"
+            return "Error during processing", None, f"An unexpected error occurred: {str(e)}", None
 
-    run_btn.click(run_pipeline, inputs=[img_input, sample, show_context], outputs=[label_output, img_output, desc_output])
+    run_btn.click(run_pipeline, inputs=[img_input, sample, show_context], outputs=[label_output, img_output, desc_output, audio_output])
 
 if __name__ == "__main__":
     print("=" * 60)
