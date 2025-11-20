@@ -175,8 +175,21 @@ def process_request(request_data):
     """
     try:
         request_id = request_data['request_id']
-        image_b64 = request_data['image']
+        image_b64 = request_data.get('image')
         show_context = request_data.get('show_context', False)
+        
+        # Input validation
+        if not image_b64:
+            return {
+                'request_id': request_id,
+                'status': 'error',
+                'message': 'No image provided',
+                'artist': 'Unknown',
+                'title': 'Unknown',
+                'period': 'Unknown',
+                'confidence': 0.0,
+                'description': 'Please upload an image to recognize an artwork.'
+            }
         
         # Decode image
         image_bytes = base64.b64decode(image_b64)
