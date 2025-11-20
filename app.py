@@ -257,6 +257,10 @@ def recognize(img, show_context):
         - Returns error message if no index loaded
         - Gracefully handles search failures
     """
+    # Input validation
+    if img is None:
+        return "Error: No image provided", None, "Please upload an image to recognize an artwork."
+    
     start_time = time.time()
     results, emb = search_index(img, k=5)
 
