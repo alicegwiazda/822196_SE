@@ -76,7 +76,15 @@ def embed_image(img: Image.Image) -> np.ndarray:
         
     Returns:
         Normalized 512-dimensional embedding
+        
+    Raises:
+        ValueError: If img is None or not a valid PIL Image
     """
+    if img is None:
+        raise ValueError("Input image cannot be None")
+    if not isinstance(img, Image.Image):
+        raise ValueError(f"Expected PIL.Image.Image, got {type(img)}")
+    
     inputs = clip_processor(images=img, return_tensors="pt").to(device)
     with torch.no_grad():
         emb = clip_model.get_image_features(**inputs)
@@ -95,7 +103,14 @@ def search_index(img: Image.Image, k: int = 5):
         
     Returns:
         tuple: (results DataFrame, embedding)
+        
+    Raises:
+        ValueError: If k is invalid
     """
+    if img is None:
+        return None, None
+    if not isinstance(k, int) or k <= 0:
+        raise ValueError(f"k must be a positive integer, got {k}")
     if index is None or len(metadata) == 0:
         return None, None
 
@@ -120,6 +135,14 @@ def generate_description(artist: str, title: str, period: str) -> str:
     Returns:
         Generated tour-guide style description (150-250 words)
     """
+    # Input validation
+    if not artist or not isinstance(artist, str):
+        artist = "Unknown Artist"
+    if not title or not isinstance(title, str):
+        title = "Untitled"
+    if not period or not isinstance(period, str):
+        period = "Unknown Period"
+    
     if gemini_client is not None:
         try:
             prompt = f"""You are an enthusiastic and knowledgeable art museum tour guide. Generate a comprehensive, engaging description for this artwork.
