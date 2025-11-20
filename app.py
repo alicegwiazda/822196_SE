@@ -308,11 +308,22 @@ def recognize(img, show_context):
         writer = csv.writer(f)
         writer.writerow([time.strftime("%Y-%m-%d %H:%M:%S"), artist, conf, response_time])
 
+    # Load the recognized database artwork image
+    try:
+        database_img_path = top1.get("image_path", None)
+        if database_img_path and os.path.exists(database_img_path):
+            database_img = Image.open(database_img_path).convert("RGB")
+        else:
+            database_img = img  # Fallback to uploaded image if path not found
+    except Exception as e:
+        print(f"Error loading database image: {e}")
+        database_img = img  # Fallback to uploaded image on error
+
     if show_context:
         neighbors = results[["artist", "title", "period", "distance"]].to_dict(orient="records")
-        return f"Recognized: {artist}", img, description + "\nContext: " + str(neighbors)
+        return f"Recognized: {artist}", database_img, description + "\nContext: " + str(neighbors)
     else:
-        return f"Recognized: {artist}", img, description
+        return f"Recognized: {artist}", database_img, description
 
 
 sample_images = []
