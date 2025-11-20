@@ -25,6 +25,9 @@ Pillow
 tqdm
 python-dotenv
 
+# Text-to-Speech
+gTTS
+
 # Testing
 pytest
 pytest-cov
