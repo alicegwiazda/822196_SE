@@ -100,7 +100,15 @@ def embed_image(img: Image.Image) -> np.ndarray:
         - Uses GPU if available (cuda) for faster inference
         - Preprocessing (resizing, normalization) is handled by CLIPProcessor
         - No gradients are computed (inference only)
+    
+    Raises:
+        ValueError: If img is None or not a valid PIL Image
     """
+    if img is None:
+        raise ValueError("Input image cannot be None")
+    if not isinstance(img, Image.Image):
+        raise ValueError(f"Expected PIL.Image.Image, got {type(img)}")
+    
     inputs = clip_processor(images=img, return_tensors="pt").to(device)
     with torch.no_grad():
         emb = clip_model.get_image_features(**inputs)
@@ -141,7 +149,15 @@ def search_index(img: Image.Image, k: int = 5):
         - Lower distance = higher similarity
         - FAISS uses L2 distance, not cosine (but embeddings are normalized)
         - Returns None if no index is loaded (graceful degradation)
+    
+    Raises:
+        ValueError: If k is invalid (not positive integer)
     """
+    # Validate inputs
+    if img is None:
+        return None, None
+    if not isinstance(k, int) or k <= 0:
+        raise ValueError(f"k must be a positive integer, got {k}")
     if index is None or len(metadata) == 0:
         return None, None
 
@@ -178,6 +194,14 @@ def generate_description(artist: str, title: str, period: str) -> str:
         - Falls back to placeholder template if API unavailable
         - Response typically 150-300 words in tour-guide conversational style
     """
+    # Input validation
+    if not artist or not isinstance(artist, str):
+        artist = "Unknown Artist"
+    if not title or not isinstance(title, str):
+        title = "Untitled"
+    if not period or not isinstance(period, str):
+        period = "Unknown Period"
+    
     if gemini_client is not None:
         try:
             prompt = f"""You are an enthusiastic and knowledgeable art museum tour guide. Generate a comprehensive, engaging description for this artwork.
@@ -323,11 +347,28 @@ with gr.Blocks() as demo:
             img_output = gr.Image(label="Preview")
 
     def run_pipeline(uploaded, sample_path, show_context):
-        if uploaded is None and sample_path:
-            uploaded = Image.open(sample_path)
-        if uploaded is None:
-            return "No image provided", None, "Please upload or select a sample."
-        return recognize(uploaded, show_context)
+        \"\"\"Process image from upload or sample selection with validation.\"\"\"
+        try:
+            # Validate and load image
+            if uploaded is None and sample_path:
+                if not os.path.exists(sample_path):
+                    return \"Error: Sample image not found\", None, f\"Sample image path is invalid: {sample_path}\"
+                try:
+                    uploaded = Image.open(sample_path)
+                except Exception as e:
+                    return \"Error: Failed to load sample\", None, f\"Could not open sample image: {str(e)}\"
+            
+            if uploaded is None:
+                return \"No image provided\", None, \"Please upload an image or select a sample artwork.\"
+            
+            # Validate image is a PIL Image
+            if not isinstance(uploaded, Image.Image):
+                return \"Error: Invalid image format\", None, \"Please provide a valid image file.\"
+            
+            # Run recognition
+            return recognize(uploaded, show_context)
+        except Exception as e:
+            return \"Error during processing\", None, f\"An unexpected error occurred: {str(e)}\"
 
     run_btn.click(run_pipeline, inputs=[img_input, sample, show_context], outputs=[label_output, img_output, desc_output])
 
