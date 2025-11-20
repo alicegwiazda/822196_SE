@@ -214,13 +214,50 @@ def process_request(request_data):
                 'description': 'Please upload an image to recognize an artwork.'
             }
         
-        # Decode image
-        image_bytes = base64.b64decode(image_b64)
-        img = Image.open(io.BytesIO(image_bytes))
+        # Decode image with validation
+        try:
+            image_bytes = base64.b64decode(image_b64)
+            img = Image.open(io.BytesIO(image_bytes))
+        except Exception as e:
+            return {
+                'request_id': request_id,
+                'status': 'error',
+                'message': f'Failed to decode image: {str(e)}',
+                'artist': 'Unknown',
+                'title': 'Unknown',
+                'period': 'Unknown',
+                'confidence': 0.0,
+                'description': 'The uploaded image could not be processed. Please try a different image format.'
+            }
+        
+        # Validate image
+        if not isinstance(img, Image.Image):
+            return {
+                'request_id': request_id,
+                'status': 'error',
+                'message': 'Invalid image format',
+                'artist': 'Unknown',
+                'title': 'Unknown',
+                'period': 'Unknown',
+                'confidence': 0.0,
+                'description': 'Please provide a valid image file (JPEG or PNG).'
+            }
         
         # Convert to RGB if needed
-        if img.mode != 'RGB':
-            img = img.convert('RGB')
+        try:
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+        except Exception as e:
+            return {
+                'request_id': request_id,
+                'status': 'error',
+                'message': f'Image conversion failed: {str(e)}',
+                'artist': 'Unknown',
+                'title': 'Unknown',
+                'period': 'Unknown',
+                'confidence': 0.0,
+                'description': 'The image could not be converted to the required format.'
+            }
         
         # Search index
         results, emb = search_index(img, k=5)
