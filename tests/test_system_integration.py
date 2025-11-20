@@ -15,7 +15,7 @@ from transformers import CLIPProcessor, CLIPModel
 # Configuration
 INDEX_PATH = "models/faiss.index"
 META_PATH = "models/metadata.parquet"
-TEST_IMAGE = "data/sample_images/art_1.png"
+TEST_IMAGE = "data/sample_images/Monet_artwork_1.jpg"
 
 def test_index_loading():
     """Test loading FAISS index and metadata."""
