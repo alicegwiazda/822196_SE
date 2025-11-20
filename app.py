@@ -347,28 +347,28 @@ with gr.Blocks() as demo:
             img_output = gr.Image(label="Preview")
 
     def run_pipeline(uploaded, sample_path, show_context):
-        \"\"\"Process image from upload or sample selection with validation.\"\"\"
+        """Process image from upload or sample selection with validation."""
         try:
             # Validate and load image
             if uploaded is None and sample_path:
                 if not os.path.exists(sample_path):
-                    return \"Error: Sample image not found\", None, f\"Sample image path is invalid: {sample_path}\"
+                    return "Error: Sample image not found", None, f"Sample image path is invalid: {sample_path}"
                 try:
                     uploaded = Image.open(sample_path)
                 except Exception as e:
-                    return \"Error: Failed to load sample\", None, f\"Could not open sample image: {str(e)}\"
+                    return "Error: Failed to load sample", None, f"Could not open sample image: {str(e)}"
             
             if uploaded is None:
-                return \"No image provided\", None, \"Please upload an image or select a sample artwork.\"
+                return "No image provided", None, "Please upload an image or select a sample artwork."
             
             # Validate image is a PIL Image
             if not isinstance(uploaded, Image.Image):
-                return \"Error: Invalid image format\", None, \"Please provide a valid image file.\"
+                return "Error: Invalid image format", None, "Please provide a valid image file."
             
             # Run recognition
             return recognize(uploaded, show_context)
         except Exception as e:
-            return \"Error during processing\", None, f\"An unexpected error occurred: {str(e)}\"
+            return "Error during processing", None, f"An unexpected error occurred: {str(e)}"
 
     run_btn.click(run_pipeline, inputs=[img_input, sample, show_context], outputs=[label_output, img_output, desc_output])
 
